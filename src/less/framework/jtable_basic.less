@@ -1,0 +1,253 @@
+﻿/* These file is a start point for who wants to create a fully custom
+ * theme for jTable. jtable_theme_base.less (or css) file is needed
+ * for functionality of jTable. This file does not add any color or shape
+ * modifications. It just shows how to set icons. You can change them too.
+ * Halil ibrahim Kalkan / http://www.jtable.org
+ */
+
+@import "../import/jtable_theme_base.less";
+
+.myPadding() {
+    padding: 10px 15px;
+}
+
+.glyphicon() {
+    /*    color: #000;*/
+    font-family:'Glyphicons Halflings';
+    font-style:normal;
+    font-weight:400;
+    //    line-height:1;*/
+    text-align: center;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+.button() {
+    color: #333;
+    background-color: #FFF;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+
+    &:active, &:hover {
+        background-color: #E6E6E6;
+    }
+}
+
+.jtable_theme_base;
+
+div.jtable-main-container {
+    border-radius: 4px;
+    margin-bottom: 20px;
+    background-color: #FFF;
+    border: 1px solid transparent;
+    border-color: #DDD;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+
+    div.jtable-title {
+        .myPadding;
+
+        border-bottom: 1px solid transparent;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+
+        color: #333;
+        background-color: #F5F5F5;
+        border-color: #DDD;
+
+        background-image: linear-gradient(to bottom, #F5F5F5 0px, #E8E8E8 100%);
+        background-repeat: repeat-x;
+
+        .jtable-toolbar-item {
+            .button;
+        }
+
+        .jtable-close-button {
+            width: 24px !important;
+            margin: 10px 5px 6px !important;
+            &:before{
+                .glyphicon;
+                //.jtable-close-button:before 
+                content:"\e014"
+            }
+
+
+        }
+
+        div.jtable-toolbar
+        {
+            padding: 10px 5px;
+
+            span.jtable-toolbar-item
+            {
+                padding: 0;
+            }
+
+            .jtable-toolbar-item-add-record {
+
+                .jtable-toolbar-item-icon{
+                    text-align: center !important;
+                    &:before{
+                        .glyphicon;
+                        content:"+"
+                    }
+                }
+            }
+        }
+    }
+
+    table.jtable {
+
+        thead {
+            th {
+                padding: 5px;
+                vertical-align: bottom;
+                border: 1px solid #DDD;
+                border-bottom: 2px solid #DDD;
+                border-top: none;
+
+                &:first-child {
+                    border-left: none;
+                }
+
+                &:last-child {
+                    border-right: none;
+                }
+
+                &.jtable-column-header-sortable div.jtable-column-header-container {
+                    //background: url('column-sortable.png') no-repeat right;
+                    &:after{
+                        //.glyphicon-sort:before{
+                        .glyphicon;
+                        color: #CCC;
+                        content:"\e150";
+                        float: right;
+                    }
+                }
+
+                &.jtable-column-header-sorted-asc div.jtable-column-header-container {
+                    //background: url('column-asc.png') no-repeat right;
+                    &:after{
+                        //.glyphicon-sort-by-attributes:before{
+                        .glyphicon;
+                        color: #333;
+                        content:"\e155";
+                        float: right;
+                    }
+                }
+
+
+                &.jtable-column-header-sorted-desc div.jtable-column-header-container {
+                    //background: url('column-desc.png') no-repeat right;
+                    //.glyphicon;
+                    &:after{
+                        //.glyphicon-sort-by-attributes-alt:before{
+                        .glyphicon;
+                        color: #333;
+                        content:"\e156";
+                        float: right;
+                    }
+                }
+            }
+        }
+
+        tbody {
+            > tr {
+                &:first-child {
+                    border-top: none;
+                }
+
+                &:last-child {
+                    border-bottom: none;
+                }
+                &:nth-of-type(2n+1) {
+                    background-color: #F9F9F9;
+                }
+
+                > td {
+                    padding: 5px;
+                    border: 1px solid #DDD;
+
+                    &:first-child {
+                        border-left: none;
+                    }
+
+                    &:last-child {
+                        border-right: none;
+                    }
+
+                    .jtable-command-button{
+                        .glyphicon;
+                        .button;
+                        width: 100%;
+                        min-width: 19px;
+                    }
+
+                    .jtable-edit-command-button {
+                        //.glyphicon-pencilalignment-adjust: 
+                        &:before{
+                            content:"\270f"
+                        }
+                    }
+
+                    .jtable-delete-command-button {
+                        &:before {
+                            //.glyphicon-trash:before{
+                            content:"\e020"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    button {
+        .button;
+    }
+
+    div.jtable-bottom-panel {
+        > .jtable-left-area,
+        > .jtable-right-area {
+            padding: 4px;
+            font-size: small;
+        }
+
+        & span.jtable-page-list {
+
+            > .jtable-page-number {
+                
+                &, &-first, &-previous, &-next, &-last {
+                    color: #679AC9;
+                }
+                
+                &-disabled {
+                    color: #777;
+                }
+
+                &-active {
+                    color: #555;
+                    font-weight: bold;
+                }
+
+                &:hover{
+                    text-decoration: underline;
+                }
+
+                &:focus{
+                    outline: thin dotted;
+                    outline-offset: -2px;
+                }
+            }
+        }
+    }
+}
+
+div.jtable-busy-message {
+    color: #000;
+    background-color: #ddd;
+}
+
+@media screen and (max-width: 991px) {
+    table.jtable {
+        font-size: 75%;
+    }
+}

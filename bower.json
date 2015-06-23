@@ -1,0 +1,27 @@
+{
+  "name": "TZE",
+  "version": "0.1",
+  "description": "Ticket- und Zeiterfassung",
+  "author": "Johannes Boost <jjjb@usw-tools.de>",
+  "license": "CC-BY-NC-SA-3.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "build",
+    "nbproject",
+    "ssh.json"
+  ],
+  "dependencies": {
+    "jquery-ui": "~1.11.4",
+    "jtable": "~2.4.0",
+    "jquery-form-validator": "~2.2.1",
+    "bootstrap": "~3.3.4",
+    "bootbox": "~4.4.0",
+    "jqueryui-timepicker-addon": "~1.5.4",
+    "js-jquery": "https://github.com/henrya/js-jquery.git",
+    "PHPExcel": "https://github.com/PHPOffice/PHPExcel.git#~1.8.1"
+  }
+}

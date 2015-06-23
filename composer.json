@@ -1,0 +1,16 @@
+{
+    "name": "jjjb/tze",
+    "description": "Description of project tze_trunk.",
+    "authors": [
+        {
+            "name": "Johannes",
+            "email": "johannes.boost@usw-tools.de"
+        }
+    ],
+    "config": {
+        "vendor-dir": "dist/includes"
+    },
+    "require": {
+        "ramsey/array_column": "dev-master"
+    }
+}
