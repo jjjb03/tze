@@ -73,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $numRows = count($rows);
             $worksheet = $objPHPExcel->getActiveSheet();
 
-
             $worksheet
                     ->setTitle("Zusammenfassung")
                     ->fromArray($headers)

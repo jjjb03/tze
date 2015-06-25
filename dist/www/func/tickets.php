@@ -71,22 +71,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $strQuery = "SELECT 
                         id, 
                         Projekt, 
-                        done_tickets, 
-                        sum_counter, 
-                        sum_duration 
+                        COALESCE(charge_tickets,0) as charge_tickets,
+                        COALESCE(done_tickets,0) as done_tickets,
+                        COALESCE(sum_counter,0) as sum_counter,
+                        COALESCE(sum_duration,0) as sum_duration
                     FROM `projekte` 
                     left join (
                             select 
-                                    projektId,
-                                    sum(done_tickets) as done_tickets,
-                                    sum(sum_counter) as sum_counter,
-                                    sum(sum_duration) as sum_duration
-                            from tickets_view
-                            WHERE Date = ?
-                            group by projektId
+                                projektId,
+                                (   select sum(if(charge_ticket > 0, done_tickets,0))
+                                    from tickets_view tv2
+                                    left join projekte_tickets pt on (pt.ticketId = tv2.ticketId)
+                                    where tv2.ticketId = tv1.ticketId and Date = ?
+                                ) as charge_tickets,
+                                sum(done_tickets) as done_tickets,
+                                sum(sum_counter) as sum_counter,
+                                sum(sum_duration) as sum_duration
+                             from tickets_view tv1
+                             WHERE Date = ?
+                             group by projektId
                     ) tickets on (tickets.projektId = projekte.id)
                     WHERE id > 0 AND deleted <> 1";
-                $rows = $tze->get_Results($strQuery, "s", $Date);
+                $rows = $tze->get_Results($strQuery, "ss", $Date, $Date);
 
                 exit(json_encode(array("Result" => "OK", "Records" => $rows)));
             }
@@ -98,9 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     left join (
                             select
                                     userId,
-                                    sum(done_tickets) as done_tickets,
-                                    sum(sum_counter) as sum_counter,
-                                    sum(sum_duration) as sum_duration
+                                    COALESCE(sum(done_tickets),0) as done_tickets,
+                                    COALESCE(sum(sum_counter),0) as sum_counter,
+                                    COALESCE(sum(sum_duration),0) as sum_duration
                             from tickets_view where date = ?
                             group by userId
                     ) tickets on (tickets.userId = ma.iUser)
