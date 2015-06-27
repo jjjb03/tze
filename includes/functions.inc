@@ -13,8 +13,8 @@ require_once 'ip_in_range.inc';
 require_once 'mysql.inc';
 
 
-if (!isset($strSiteName) || $strSiteName == "") {
-    $strSiteName = "Ticket- und Zeiterfassung";
+if (empty($strSiteName)) {
+    $strSiteName = "TZE";
 }
 
 $PageTitle = strip_tags($strSiteName);

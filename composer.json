@@ -8,9 +8,10 @@
         }
     ],
     "config": {
-        "vendor-dir": "dist/includes"
+        "vendor-dir": "includes/"
     },
     "require": {
-        "ramsey/array_column": "dev-master"
+        "ramsey/array_column": "dev-master",
+        "phpoffice/phpexcel": "1.8.1"
     }
 }

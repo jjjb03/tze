@@ -250,65 +250,66 @@ module.exports = function (grunt) {
                 expand: true,
                 cwd: 'build/js/',
                 src: '**/framework*',
-                dest: 'dist/www/js/',
+                dest: 'www/js/',
                 filter: 'isFile'
             },
             framework_css: {
                 expand: true,
                 cwd: 'build/css/',
                 src: '**/framework*',
-                dest: 'dist/www/css/',
+                dest: 'www/css/',
                 filter: 'isFile'
             },
             framework_img: {
                 expand: true,
                 flatten: true,
                 src: framework.img_files,
-                dest: 'dist/www/res/',
+                dest: 'www/res/',
                 filter: 'isFile'
             },
             framework_other: {
                 expand: true,
                 flatten: true,
                 src: framework.other,
-                dest: 'dist/www/other/',
+                dest: 'www/other/',
                 filter: 'isFile'
             },
             sites_js: {
                 cwd: 'build/',
                 src: ['js/*.js', '!js/framework*.js'],
                 expand: true,
-                dest: 'dist/www',
+                dest: 'www',
                 filter: 'isFile'
             },
             sites_css: {
                 cwd: 'build/',
                 src: ['css/*.css', '!css/framework*.css'],
                 expand: true,
-                dest: 'dist/www',
+                dest: 'www',
                 filter: 'isFile'
             }
         },
         sftp: {
             options: sshconf,
             framework_js:
-                    'dist/www/js/**/framework*',
+                    'www/js/**/framework*',
             framework_css:
-                    'dist/www/css/**/framework*',
+                    'www/css/**/framework*',
             framework_img:
-                    'dist/www/res/**',
+                    'www/res/**',
             framework_other:
-                    'dist/www/other/**',
+                    'www/other/**',
             sites_js: [
-                'dist/www/js/*.js',
+                'www/js/*.js',
                 '!dist/www/js/framework*.js'
             ],
             sites_css: [
-                'dist/www/css/*.css',
+                'www/css/*.css',
                 '!dist/www/css/framework*.css'
             ],
             php: [
-                'dist/**/*.php', 'dist/**/*.inc'
+                'www/**/*.php', 'www/**/*.inc'
+                'includes/**/*.php', 'includes/**/*.inc'
             ]
         }
     });

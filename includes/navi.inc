@@ -55,7 +55,8 @@ $navbar .= '</ul>';
              top: 50px;
              background: white none repeat scroll 0% 0%;
              height: 100%;
-             border-top: 3px solid rgb(202, 0, 58) ! important;"></div>
+             border-top: 3px solid rgb(202, 0, 58) ! important;
+             "></div>
         <div class="container hidden-xs" style="margin: 50px auto;">
             <div style="
                  height: 250px;

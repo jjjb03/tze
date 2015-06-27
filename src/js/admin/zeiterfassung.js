@@ -317,6 +317,7 @@ var zeiterfassung = (function ($) {
             }
         }, 100);
     };
+    
     me.autoUpdate = function () {
         if ($.active > 0) {
             $(document).one("ajaxStop", function () {

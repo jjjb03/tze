@@ -21,7 +21,6 @@
     "bootstrap": "~3.3.4",
     "bootbox": "~4.4.0",
     "jqueryui-timepicker-addon": "~1.5.4",
-    "js-jquery": "https://github.com/henrya/js-jquery.git",
-    "PHPExcel": "https://github.com/PHPOffice/PHPExcel.git#~1.8.1"
+    "js-jquery": "https://github.com/henrya/js-jquery.git"
   }
 }

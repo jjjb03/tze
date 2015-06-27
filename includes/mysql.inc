@@ -120,16 +120,36 @@ class tze {
         $numargs = func_num_args();
 
         if ($numargs > 2) {
+            $argArray = func_get_args();
+            $valarray[] = $params;
             if (strlen($params) + 2 == $numargs) {
-                $valarray[] = $params;
-                $argArray = func_get_args();
                 for ($i = 2; $i < $numargs; $i++) {
                     $valarray[] = &$argArray[$i];
+                }
+            } elseif (is_array($argArray[2]) && count($argArray[2]) == strlen($params)) {
+                
+                foreach ($argArray[2] as &$value) {
+                    $valarray[] = &$value;
+                }
+//                } ($i = 0; $i < count($argArray[2]); $i++) {
+//                    $valarray[] = &$argArray[2][$i];
+//                }
+            } else {
+                $this->error('Wrong number of arguments');
+            }
+        } elseif ($numargs = 2) {
+            $numargs = count($params);
+            if (is_array($params) && $numargs > 1) {
+                if (strlen($params[0]) + 1 == $numargs) {
+                    $valarray[] = &$params;
+                } else {
+                    $this->error('Wrong number of arguments');
                 }
             } else {
                 $this->error('Wrong number of arguments');
             }
         }
+
         $sql = $this->mysql();
         $stmt = $sql->prepare($query);
 
