@@ -5,6 +5,7 @@
 /includes/*
 !/includes/*.php
 !/includes/*.inc
+!/includes/*.sql
 /includes/autoload.php
 /includes/password*.inc
 
