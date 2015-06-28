@@ -11,7 +11,4 @@
 /build/
 /ssh.json
 
-/www/*
-!/www/*.php
-!/www/func/
 /include/settings.inc
