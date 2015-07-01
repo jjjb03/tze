@@ -332,29 +332,32 @@ var timetable = (function () {
                 var timeText = $(this).text();
                 var projText = $("#buttons_projects a.active").text();
                 var fragText = "Du wechselst auf " + projText + " - " + timeText + "!";
-                me.dialogBox = bootbox.confirm(fragText, function (antwort) {
-                    if (antwort) {
+                me.dialogBox = bootbox.confirm({
+                    message: fragText,
+                    animate: false,
+                    callback: function (antwort) {
+                        if (antwort) {
 
-                        var sendButton = $(".bootbox .btn-primary");
+                            var sendButton = $(".bootbox .modal-footer button");
 
-                        // Ladeanimation
-                        sendButton.addClass("disabled")
-                                .parent().prepend("<span class='wait text-muted'><span class='glyphicon glyphicon-refresh glyphicon-spin'></span>&nbsp;Senden...</span>&nbsp;");
+                            // Ladeanimation
+                            sendButton.addClass("disabled")
+                                    .parent().prepend("<span class='wait text-muted'><span class='glyphicon glyphicon-refresh glyphicon-spin'></span>&nbsp;Senden...</span>&nbsp;");
 
-                        sendStamp({
-                            action: "TimeStamp",
-                            ProjektID: projCat,
-                            TimeClassID: timeCat
-                        }, me.dialogBox, sendButton);
+                            sendStamp({
+                                action: "TimeStamp",
+                                ProjektID: projCat,
+                                TimeClassID: timeCat
+                            }, me.dialogBox, sendButton);
 
 //                      Dialog wird durch Post Rückmeldung geschlossen.
-                        return false;
-                    } else {
-                        me.projectButtons.set(projCatLast);
-                        me.timeButtons.set(timeCatLast);
-                        tickets.loadTickets(projCatLast);
-                    }
-                });
+                            return false;
+                        } else {
+                            me.projectButtons.set(projCatLast);
+                            me.timeButtons.set(timeCatLast);
+                            tickets.loadTickets(projCatLast);
+                        }
+                    }});
             }
 
             function sendStamp(postData, dialog, sendButton) {
