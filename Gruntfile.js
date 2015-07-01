@@ -308,7 +308,7 @@ module.exports = function (grunt) {
                 '!dist/www/css/framework*.css'
             ],
             php: [
-                'www/**/*.php', 'www/**/*.inc'
+                'www/**/*.php', 'www/**/*.inc',
                 'includes/**/*.php', 'includes/**/*.inc'
             ]
         }
