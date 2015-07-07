@@ -133,6 +133,7 @@ var mitarbeiter = (function ($) {
             },
             toolbar: {
                 items: [{
+                        // Feld für Namenssuche
                         text: 'Filter: <input id="nameFilter" name="nameFilter" style="width: 6em; margin: -5px 0px; border: none;" type="text" />'
                     }, {
                         text: '<span name="undelete">gelöschte Mitarbeiter<span>'
@@ -147,6 +148,7 @@ var mitarbeiter = (function ($) {
 
             var $filter = $(this);
 
+            // kurz warten, um nicht bei jedem Tastendruch ne zu suchen...
             me.updateTimer = setTimeout(function () {
                 delete me.updateTimer;
                 me.table.jtable("load", {nameFilter: $filter.val()});

@@ -71,39 +71,57 @@ left join (
 
                 $filter = filter_input(INPUT_POST, 'filter', FILTER_SANITIZE_STRIPPED);
                 $filterId = filter_input(INPUT_POST, 'filterId', FILTER_VALIDATE_INT);
-//
-//                switch ($filter) {
-//                    case "Projekt":
-//                        $strQueryFilter = ' join projekte_zuordnung projZu on (projZu.iUser = mitarbeiter.userId) '
-//                                . 'where projZu.iProjekt = ' . $filterId . ' '
-//                                . 'group by mitarbeiter.userid ';
-//                        break;
-//                    default:
-//                        $strQueryFilter = "";
-//                }
 
                 $loggedOnly = filter_input(INPUT_POST, 'loggedOnly', FILTER_VALIDATE_BOOLEAN);
+
+                $nameFilter = $nameFilter = filter_input(INPUT_POST, 'nameFilter', FILTER_SANITIZE_STRIPPED);
+                if (!empty($nameFilter)) {
+                    $nameFilter = " (`sVorname` like '%$nameFilter%' or `sNachname` like '%$nameFilter%') ";
+                } else {
+                    $nameFilter = "";
+                }
+
                 switch ($filter) {
                     case "Projekt":
                         if ($loggedOnly) {
-                            $strQueryFilter = " where iProjekt = $filterId ";
+                            $strQueryFilter = " where ";
+
+                            if (!empty($nameFilter)) {
+                                $strQueryFilter .= $nameFilter . " and ";
+                            }
+
+                            $strQueryFilter .= " iProjekt = $filterId ";
                         } else {
-                            $strQueryFilter = ' join projekte_zuordnung projZu on (projZu.iUser = mitarbeiter.userId) '
-                                    . "where projZu.iProjekt = $filterId "
-                                    . 'group by mitarbeiter.userid ';
+                            $strQueryFilter = " join projekte_zuordnung projZu on (projZu.iUser = mitarbeiter.userId) where ";
+                            if (!empty($nameFilter)) {
+                                $strQueryFilter .= $nameFilter . " and ";
+                            }
+
+                            $strQueryFilter .= " projZu.iProjekt = $filterId group by mitarbeiter.userid ";
                         }
                         break;
+
                     default:
                         if ($loggedOnly) {
-                            $strQueryFilter = " WHERE iProjekt > 0 ";
+                            $strQueryFilter = " where ";
+
+                            if (!empty($nameFilter)) {
+                                $strQueryFilter .= $nameFilter . " and ";
+                            }
+
+                            $strQueryFilter .= " iProjekt > 0 ";
                         } else {
-                            $strQueryFilter = "";
+                            if (!empty($nameFilter)) {
+                                $strQueryFilter = " where $nameFilter ";
+                            } else {
+                                $strQueryFilter = "";
+                            }
                         }
                 }
 
 
                 $sort = filter_input(INPUT_POST, 'jtSorting', FILTER_SANITIZE_STRIPPED);
-                if (is_null($sort)) {
+                if (empty($sort)) {
                     $sort = "sNachname ASC";
                 }
 
@@ -122,7 +140,8 @@ left join (
                 $message = json_encode([
                     "Result" => "OK",
                     "Records" => $rows,
-                    "last" => $last
+                    "last" => $last,
+                    "query" => "$strQueryFilter"
                 ]);
 
                 exit($message);

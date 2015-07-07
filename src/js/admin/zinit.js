@@ -69,10 +69,9 @@ $(document).ready(function () {
 
             /* Tabelle Mitarbeiter mit Untertabelle Zeiterfassung*/
             zeiterfassung.init();
+            zeiterfassung.filter.projektFilterInit("#projekt-toggle");
                        
-            $("#projekt-toggle").on("show.bs.collapse", function (e) {
-                zeiterfassung.filter.init("#projekt-toggle");
-            });
+            
 
             $('#jtable_ZE').jtable("load");
 

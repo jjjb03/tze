@@ -25,17 +25,32 @@ var tickets = (function ($) {
         'label': '<label class="col-sm-4 control-label"></label>',
         'input': '<div class="col-sm-8"><input class="bootbox-input bootbox-input-number form-control" autocomplete=off /></div>',
         'inputgroupbtn': '<span class="input-group-btn"></span>',
-        'button1': '<button class="btn btn-default" data-step="1" type="button">+1</button>',
-        'button5': '<button class="btn btn-default" data-step="5" type="button">+5</button>',
-        'button10': '<button class="btn btn-default" data-step="10" type="button">+10</button>'
+        'button1': '<button class="btn btn-default" tabindex="-1" data-step="1" type="button">+1</button>',
+        'button5': '<button class="btn btn-default" tabindex="-1" data-step="5" type="button">+5</button>',
+        'button10': '<button class="btn btn-default" tabindex="-1" data-step="10" type="button">+10</button>'
     };
 
+    /**
+     * Hängt ein neues Input an "form" an 
+     * @param {jQuery Object} form Element, an welches das Input angehängt wird
+     * @param {string} inputName Name des Input Elements
+     * @param {string} label Beschriftung
+     * @param {string} inputType Art des Inputfeldes
+     * @returns {jQuery Object} Gibt Input Feld zurück
+     */
     function addInput(form, inputName, label, inputType) {
+        // create formgroup
         var formGroup = form.append(template.formgroup).children().last();
+
+        // append Label to formgroup
         formGroup.append(template.label).children().last().prop({'for': inputName, 'textContent': label + ':'});
+
+        // append input to formgroup
         formGroup.append(template.input).find('input').prop({'id': inputName, 'type': inputType});
+
         return formGroup.find('input');
     }
+
 
     function addInputSteps(input) {
         var inputGroup = input.wrapAll('<div class="input-group"></div>').parent();
@@ -43,7 +58,7 @@ var tickets = (function ($) {
         inputGroup.children().first().append(template.button10 + template.button5 + template.button1);
     }
 
-    /** @function Fügt ein 'Badge' zum Button hinzu 
+    /** @function hängt eine 'Badge' an übergebenes Element an
      * @param {object} element jQuery Objekt, in welches Badge eingefügt wird
      * @param {string} name Name des einzufügenden Elements
      * @param {string} value Wert, welcher angezeigt wird
@@ -131,6 +146,7 @@ var tickets = (function ($) {
 
                                     if (keyPressed === value.shortcut.toUpperCase()) {
                                         if (!$('.bootbox').length) {
+                                            event.preventDefault();
                                             button.click();
                                         }
                                     }
@@ -213,13 +229,13 @@ var tickets = (function ($) {
                     if (ticketData.tickets !== null) {
                         addBadge(badge, "tickets", ticketData.tickets);
                     }
-                    
+
                     dialogBox.modal("hide");
 
                     setTimeout(function () {
                         ticketButton.tooltip();
                     }, 500);
-                    
+
                 } else if (data.Result === "ERROR") {
 
                     inputElements.each(function () {
@@ -266,6 +282,7 @@ var tickets = (function ($) {
 
             if (ticket.counterSwitch > 1) {
                 var counter = addInput(ticketprompt, "counter", ticket.counterName, "number");
+                counter.prop({"autofocus": true});
                 addInputSteps(counter);
                 if (ticket.counterSwitch > 2) {
                     counter.prop({'required': true});
@@ -282,19 +299,25 @@ var tickets = (function ($) {
 
             if (ticket.undoneSwitch > 0) {
                 // Achtung - Checkbox wird invertiert
-                var undoneSwitch = addInput(ticketprompt, "undone", "Abgeschlossen", "checkbox");
+                addInput(ticketprompt, "undone", "Abgeschlossen", "checkbox");
             }
+            
+            $(document).one("shown.bs.modal", function () {
+                // workarround, 'cause bootbox autofocus on ok-button
+                var autofocus_elem = $(".bootbox").find("input[autofocus]");
+                autofocus_elem.first().focus();
+            });
 
             me.dialogBox = bootbox.confirm({
                 title: 'Neues Ticket [' + ticket.ticketName + ']',
                 animate: false,
-                backdrop: true,
+//                backdrop: null,
                 message: ticketprompt,
                 callback: function (result) {
                     $('.popover').popover('destroy');
                     if (result) {
                         ticketButton.tooltip('hide');
-                        
+
                         var cancel = false;
                         var inputs = $(this).find("input");
 
@@ -683,29 +706,32 @@ var timetable = (function () {
                 var timeText = $(this).text();
                 var projText = $("#buttons_projects a.active").text();
                 var fragText = "Du wechselst auf " + projText + " - " + timeText + "!";
-                me.dialogBox = bootbox.confirm(fragText, function (antwort) {
-                    if (antwort) {
+                me.dialogBox = bootbox.confirm({
+                    message: fragText,
+                    animate: false,
+                    callback: function (antwort) {
+                        if (antwort) {
 
-                        var sendButton = $(".bootbox .btn-primary");
+                            var sendButton = $(".bootbox .modal-footer button");
 
-                        // Ladeanimation
-                        sendButton.addClass("disabled")
-                                .parent().prepend("<span class='wait text-muted'><span class='glyphicon glyphicon-refresh glyphicon-spin'></span>&nbsp;Senden...</span>&nbsp;");
+                            // Ladeanimation
+                            sendButton.addClass("disabled")
+                                    .parent().prepend("<span class='wait text-muted'><span class='glyphicon glyphicon-refresh glyphicon-spin'></span>&nbsp;Senden...</span>&nbsp;");
 
-                        sendStamp({
-                            action: "TimeStamp",
-                            ProjektID: projCat,
-                            TimeClassID: timeCat
-                        }, me.dialogBox, sendButton);
+                            sendStamp({
+                                action: "TimeStamp",
+                                ProjektID: projCat,
+                                TimeClassID: timeCat
+                            }, me.dialogBox, sendButton);
 
 //                      Dialog wird durch Post Rückmeldung geschlossen.
-                        return false;
-                    } else {
-                        me.projectButtons.set(projCatLast);
-                        me.timeButtons.set(timeCatLast);
-                        tickets.loadTickets(projCatLast);
-                    }
-                });
+                            return false;
+                        } else {
+                            me.projectButtons.set(projCatLast);
+                            me.timeButtons.set(timeCatLast);
+                            tickets.loadTickets(projCatLast);
+                        }
+                    }});
             }
 
             function sendStamp(postData, dialog, sendButton) {

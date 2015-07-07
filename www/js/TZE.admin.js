@@ -74,12 +74,21 @@ function getOptions(urlString, dataString) {
     return options;
 }
 
+/**
+ * @typedef {object} KeyElemPairs
+ * @property {string} key Name of key
+ * @property {string} element jQuery Selector, where key gets attached, if key is defined in server response
+ */
+
 /** 
  * @function actionFunc
  * @param {URL} urlString Adresse, von welcher Records geladen werden
  * @param {String} dataString Daten, welche per POST übertragen werden
- * @param {jTable-Data} jTableData Daten, welche von jTable für Sortierung usw. übertragen werden soll
- * */
+ * @param {jTable-Data} jTableData jTable Daten für Sortierung und Seitenanzeige
+ * @param {jTable-PostData} jTablePostData Sonstige Post Daten, welche Übertragen werden sollen
+ * @param {...KeyElemPairs} processData if "foo" is defined in server response, value of foo gets attached to "#bar" as "foo"
+ * 
+ **/
 function actionFunc(urlString, dataString, jTableData, jTablePostData, processData) {
 
     $.each([jTableData, jTablePostData], function (i, el) {
@@ -91,13 +100,13 @@ function actionFunc(urlString, dataString, jTableData, jTablePostData, processDa
         }
     });
 
-    function saveData(recData, savData) {
-        if (savData !== undefined) {
-            $.each(savData, function (propertyName, valueOfProperty) {
-//            key: "last", obj: last
+    function saveData(recData, processData) {
+        if (processData !== undefined) {
+            $.each(processData, function (key, element) {
+//            key: "last", element: last
                 $.each(recData, function (name, value) {
-                    if (name === valueOfProperty.key) {
-                        $(valueOfProperty.elem).data(name, value);
+                    if (name === element.key) {
+                        $(element.element).data(name, value);
                     }
                 });
             });
@@ -254,6 +263,7 @@ var mitarbeiter = (function ($) {
             },
             toolbar: {
                 items: [{
+                        // Feld für Namenssuche
                         text: 'Filter: <input id="nameFilter" name="nameFilter" style="width: 6em; margin: -5px 0px; border: none;" type="text" />'
                     }, {
                         text: '<span name="undelete">gelöschte Mitarbeiter<span>'
@@ -268,6 +278,7 @@ var mitarbeiter = (function ($) {
 
             var $filter = $(this);
 
+            // kurz warten, um nicht bei jedem Tastendruch ne zu suchen...
             me.updateTimer = setTimeout(function () {
                 delete me.updateTimer;
                 me.table.jtable("load", {nameFilter: $filter.val()});
@@ -683,30 +694,79 @@ var tickets = function ($) {
 var zeiterfassung = (function ($) {
     var me = {};
     me.filter = {
-        init: function (liste) {
-            $(liste).empty();
+        /**
+         * Pulls list for filtering by project
+         * @param jQuery-Object liste element where the list gets attached
+         * @returns nothing
+         */
+        projektFilterInit: function (liste) {
+            me.filter.$liste = $(liste);
+            var $liste = me.filter.$liste;
 
-            $.post("func/projekte.php", {'mode': 'admin', 'action': 'projekt-list'}, function (data) {
-                if (data.Result === "OK") {
+            // $('#projekt-toggle').children().length
 
-                    //$(liste).append(link);
+            $liste.on("show.bs.collapse", function (e) {
+                $liste.empty().append("<span class='wait text-muted'>Lädt...&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span></span>");
 
-                    $.each(data.Records, function (ind, ele) {
-                        var link = $('<a href="#zeiterfassung" class="filter list-group-item"></a>');
-                        link.text(ele.Projekt).data("filter", {id: ele.id, typ: "Projekt"});
+                $.post("func/projekte.php", {'mode': 'admin', 'action': 'projekt-list'}, function (data) {
+                    if (data.Result === "OK") {
+                        $liste.empty();
 
-                        //var listenelement = $('<li class="list-group-item"></li>');
-                        //listenelement.append(link);
+                        //$(liste).append(link);
 
-                        $(liste).append(link);
-                    });
+                        $.each(data.Records, function (ind, ele) {
+                            var link = $('<a href="#zeiterfassung" class="filter list-group-item"></a>');
+                            link.text(ele.Projekt).data("filter", {filter: "Projekt", filterId: ele.id});
+                            $liste.append(link);
+                        });
+                    } else {
+                        $liste.empty().append("Es ist Fehler aufgetreten!");
+                    }
+                }, "json");
+            });
+        },
+        /**
+         * resets all filter Data
+         */
+        reset: function () {
+
+            // Filter leeren
+            $('#filter').removeData("filter");
+
+            // Dropdown-List ausblenden
+            var $liste = me.filter.$liste || false;
+            if ($liste) {
+                $liste.collapse('hide');
+            }
+
+            // Schalter zurücksetzen
+            $.each(me.filter.toggleElements, function (i, el) {
+                // Update UI
+                var $el = $(el);
+                $el.removeClass("active");
+
+                var toggledata = $el.data("filter") || false;
+
+                // Remove Data
+                if (toggledata) {
+                    if (toggledata.toggleProp) {
+                        delete toggledata[toggledata.toggleProp];
+                    }
                 }
-            }, "json");
-        }
+            });
+
+            // Namensfilter leeren
+            $('input[name="nameFilter"]').val('');
+        },
+        toggleElements: [
+            '#filter a[href=#loggedOnly]'
+        ],
+        settings: {}
     };
     me.init = function () {
-        this.jtable = $('#jtable_ZE');
-        var $jtable = this.jtable;
+        me.$jtable = $('#jtable_ZE');
+        var $jtable = this.$jtable;
+
         $jtable.jtable({
             title: "&nbsp;",
             openChildAsAccordion: true,
@@ -883,24 +943,27 @@ var zeiterfassung = (function ($) {
                     //var last = me.last;
                     return actionFunc("func/zeiterfassung.php",
                             "mode=admin&action=get-users&Date=" + $('#datepicker').val(),
-                            jtParams, postData, [{key: "last", elem: "#filter"}]);
+                            jtParams, postData, [{key: "last", element: "#filter"}]);
                 }
             },
             toolbar: {
-                hoverAnimation: true, //Enable/disable small animation on mouse hover to a toolbar item.
-                hoverAnimationDuration: 60, //Duration of the hover animation.
-                hoverAnimationEasing: undefined, //Easing of the hover animation. Uses jQuery's default animation ('swing') if set to undefined.
                 items: [{
+                        // Feld für Namenssuche
+                        text: 'Filter: <input id="nameFilter" name="nameFilter" style="width: 6em; margin: -5px 0px; border: none;" type="text" />'
+                    }, {
+                        // Button für Liveview
                         text: '<div><input id="autoreload" style="margin: 0;" type="checkbox" /><span class="hidden glyphicon glyphicon-refresh"></span> AutoUpdate</div>',
                         click: function () {
                             me.toggleUpdater();
                         }
                     }, {
+                        // manuelles neuladen
                         text: '<div><span class="glyphicon glyphicon-refresh"></span> Aktualisieren</div>',
                         click: function () {
                             $jtable.jtable("reload");
                         }
                     }, {
+                        // 
                         text: '<div><span class="glyphicon glyphicon-download-alt"></span> Excel-Report</div>',
                         click: function () {
                             var currentDate = $('#datepicker').val();
@@ -924,47 +987,67 @@ var zeiterfassung = (function ($) {
             sorting: true
         });
 
-        $('a[href=#loggedOnly]').data("filter", {typ: "Projekt", action: "toggle", ele: "loggedOnly"});
+        // Toggle Button für logged Only
+        $('a[href=#loggedOnly]').data("filter", {toggleProp: "loggedOnly"});
 
         $("#zeiterfassung").on("click", "a.filter", function (e) {
             e.preventDefault();
-            
+
+            // Filter laden bzw. leer anlegen
+            var filter = $('#filter').data("filter") || $('#filter').data("filter", {}).data("filter");
+
+            // Daten des neuen Filters laden
             var $this = $(this);
             var newFilter = $this.data("filter") || false;
-            var filter = $('#filter').data("filter") || {};
 
             if (newFilter) {
-                if (newFilter.action === "toggle" && newFilter.ele !== undefined) {
-                    newFilter[newFilter.ele] = !newFilter[newFilter.ele];
+                // falls toggleProp gesetzt, dieses toggeln
+                if (newFilter.toggleProp) {
+                    newFilter[newFilter.toggleProp] = !newFilter[newFilter.toggleProp];
 
-                    if (newFilter[newFilter.ele]) {
+                    if (newFilter[newFilter.toggleProp]) {
                         $this.addClass("active");
                     } else {
                         $this.removeClass("active");
                     }
-                }
-
-                $('#filter').data("filter", $.extend(filter, newFilter));
-                
-                if (newFilter.typ === filter.typ && newFilter.id === filter.id && !newFilter.action) {
-                    $this.addClass("active").siblings().removeClass("active");
-                }
-
-                if (filter.id) {
-                    $('#jtable_ZE').jtable('load', {
-                        filter: filter.typ,
-                        filterId: filter.id,
-                        loggedOnly: !!filter.loggedOnly
-                    });
                 } else {
-                    $('#jtable_ZE').jtable('load', {loggedOnly: !!filter.loggedOnly});
+//                // UI anpassen
+//                if (newFilter.filter === filter.filter && newFilter.filterId === filter.filterId && !newFilter.action) {
+                    $this.addClass("active").siblings().removeClass("active");
+//                }
                 }
+
+                // Filter mit neuem Filter ergänzen
+                $.extend(filter, newFilter);
+
+                delete filter.toggleProp;
+
             } else {
-                $.extend($('#filter a[href=#loggedOnly]').data("filter"), {loggedOnly: false});
+                me.filter.reset();
                 $this.siblings().removeClass("active").children().removeClass("active");
-                $('#filter').removeData('filter');
-                $('#jtable_ZE').jtable('load');
             }
+
+            $jtable.jtable('load', filter);
+        });
+
+        $("#zeiterfassung").on('keydown', 'input[name="nameFilter"]', function () {
+            var $this = $(this);
+
+            // letzte Anfrage löschen, um nicht bei jedem Tastendruch neu zu suchen...
+            if (me.updateTimer) {
+                clearTimeout(me.updateTimer);
+            }
+
+            // kurz warten, um nicht bei jedem Tastendruck neu zu suchen...
+            me.updateTimer = setTimeout(function () {
+
+                // Filter laden bzw. leer anlegen
+                var filter = $('#filter').data("filter") || $('#filter').data("filter", {}).data("filter");
+                // Text in Filter aufnehmen
+                filter.nameFilter = $this.val();
+
+                $jtable.jtable("load", filter);
+            }, 400);
         });
     };
     me.toggleUpdater = function () {
@@ -990,8 +1073,10 @@ var zeiterfassung = (function ($) {
             }
         }, 100);
     };
+
     me.autoUpdate = function () {
         if ($.active > 0) {
+            //falls bereits eine Anfrage an den Server läuft...
             $(document).one("ajaxStop", function () {
                 me.autoUpdate();
             });
@@ -1005,6 +1090,7 @@ var zeiterfassung = (function ($) {
                 }
             }
 
+            // me.updateRequest used in me.toggleUpdater()
             me.updateRequest = $.post("func/zeiterfassung.php", dataString, function (data) {
                 delete me.updateRequest;
                 if (data.Result === "OK") {
@@ -1132,10 +1218,9 @@ $(document).ready(function () {
 
             /* Tabelle Mitarbeiter mit Untertabelle Zeiterfassung*/
             zeiterfassung.init();
+            zeiterfassung.filter.projektFilterInit("#projekt-toggle");
                        
-            $("#projekt-toggle").on("show.bs.collapse", function (e) {
-                zeiterfassung.filter.init("#projekt-toggle");
-            });
+            
 
             $('#jtable_ZE').jtable("load");
 

@@ -23,12 +23,21 @@ function getOptions(urlString, dataString) {
     return options;
 }
 
+/**
+ * @typedef {object} KeyElemPairs
+ * @property {string} key Name of key
+ * @property {string} element jQuery Selector, where key gets attached, if key is defined in server response
+ */
+
 /** 
  * @function actionFunc
  * @param {URL} urlString Adresse, von welcher Records geladen werden
  * @param {String} dataString Daten, welche per POST übertragen werden
- * @param {jTable-Data} jTableData Daten, welche von jTable für Sortierung usw. übertragen werden soll
- * */
+ * @param {jTable-Data} jTableData jTable Daten für Sortierung und Seitenanzeige
+ * @param {jTable-PostData} jTablePostData Sonstige Post Daten, welche Übertragen werden sollen
+ * @param {...KeyElemPairs} processData if "foo" is defined in server response, value of foo gets attached to "#bar" as "foo"
+ * 
+ **/
 function actionFunc(urlString, dataString, jTableData, jTablePostData, processData) {
 
     $.each([jTableData, jTablePostData], function (i, el) {
@@ -40,13 +49,13 @@ function actionFunc(urlString, dataString, jTableData, jTablePostData, processDa
         }
     });
 
-    function saveData(recData, savData) {
-        if (savData !== undefined) {
-            $.each(savData, function (propertyName, valueOfProperty) {
-//            key: "last", obj: last
+    function saveData(recData, processData) {
+        if (processData !== undefined) {
+            $.each(processData, function (key, element) {
+//            key: "last", element: last
                 $.each(recData, function (name, value) {
-                    if (name === valueOfProperty.key) {
-                        $(valueOfProperty.elem).data(name, value);
+                    if (name === element.key) {
+                        $(element.element).data(name, value);
                     }
                 });
             });
