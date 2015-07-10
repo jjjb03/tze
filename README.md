@@ -28,28 +28,18 @@ example for lighttpd:
 ```
 
 ## UI-Frameworks:
-* [jQuery]
-* [jQuery ui]
-* [bootstrap]
-* [jtable]
-* [jquery-ui-timepicker-addon]
-* [jquery.binarytransport]
-
-[jQuery]:http://jquery.com
-[jQuery ui]:http://www.jqueryui.com
-[bootstrap]:http://www.getbootstrap.com
-[jtable]:http://www.jtable.org
-[jquery-ui-timepicker-addon]:https://github.com/trentrichardson/jQuery-Timepicker-Addon
-[jquery.binarytransport]:https://github.com/henrya/js-jquery
+* [jQuery](http://jquery.com)
+* [jQuery ui](http://www.jqueryui.com)
+* [bootstrap](http://www.getbootstrap.com)
+* [bootstrap-datetimepicker](https://github.com/Eonasdan/bootstrap-datetimepicker)
+* [jtable](http://www.jtable.org)
+* [jquery-ui-timepicker-addon](https://github.com/trentrichardson/jQuery-Timepicker-Addon)
+* [jquery.binarytransport](https://github.com/henrya/js-jquery)
 
 ## Server-Frameworks:
-* [PHPOffice/PHPExcel]
-* [phpPasswordHashingLib] (PHP 5.5-like password functions)
-* [array_column()] (PHP 5.5-like array_column())
-
-[PHPOffice/PHPExcel]:https://github.com/PHPOffice/PHPExcel.git
-[phpPasswordHashingLib]:https://github.com/Antnee/phpPasswordHashingLib
-[array_column()]:https://github.com/ramsey/array_column.git
+* [PHPOffice/PHPExcel](https://github.com/PHPOffice/PHPExcel.git)
+* [phpPasswordHashingLib](https://github.com/Antnee/phpPasswordHashingLib)
+* [array_column()](https://github.com/ramsey/array_column.git)
 
 ## License
 Copyright (c) 2015, Johannes Boost [jjjb@usw-tools.de]

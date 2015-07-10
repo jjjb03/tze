@@ -61,20 +61,16 @@ $(document).ready(function () {
         /* Zeiterfassung */
         if ($(e.target).attr('href') === "#zeiterfassung") {
 
-            /* Kalender */
-            $('#datepicker').datepicker({dateFormat: "yy-mm-dd"})
-                    .on("change", function () {
-                        $('#jtable_ZE').jtable('load');
-                    });
+//            /* Kalender */
+//            $('#datepicker').datepicker({dateFormat: "yy-mm-dd"})
+//                    .on("change", function () {
+//                        $('#jtable_ZE').jtable('load');
+//                    });
 
             /* Tabelle Mitarbeiter mit Untertabelle Zeiterfassung*/
-            zeiterfassung.init();
+            zeiterfassung.init("#zeiterfassung", "#jtable_ZE", "#datepicker");
             zeiterfassung.filter.projektFilterInit("#projekt-toggle");
-                       
             
-
-            $('#jtable_ZE').jtable("load");
-
         } else if ($(e.relatedTarget).attr('href') === "#zeiterfassung") {
             $('#jtable_ZE').jtable("destroy");
         }
