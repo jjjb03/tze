@@ -140,8 +140,7 @@ left join (
                 $message = json_encode([
                     "Result" => "OK",
                     "Records" => $rows,
-                    "last" => $last,
-                    "query" => "$strQueryFilter"
+                    "last" => $last
                 ]);
 
                 exit($message);

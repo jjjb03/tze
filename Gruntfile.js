@@ -10,6 +10,9 @@ var framework = {
     js_files: [
         // jQuery
         'bower_components/jquery/dist/jquery.js',
+        // moment
+        'bower_components/moment/moment.js',
+        'bower_components/moment/locale/de.js',
         // Bootstrap
         'bower_components/bootstrap/dist/js/bootstrap.js',
         // Bootbox
@@ -31,6 +34,8 @@ var framework = {
         // jQuery Timepicker
         'bower_components/jqueryui-timepicker-addon/dist/jquery-ui-timepicker-addon.js',
         'bower_components/jqueryui-timepicker-addon/dist/i18n/*de.js',
+        // bootstrap-datetimepicker
+        'bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js',
         // jQuery Form Validator
         'bower_components/jquery-form-validator/form-validator/jquery.form-validator.js',
         // jQuery Binary Transport
@@ -49,7 +54,9 @@ var framework = {
         //'bower_components/bootstrap/dist/css/bootstrap.css',
         //'bower_components/bootstrap/dist/css/bootstrap-theme.css',
         // eigene Anpassungen
-        'src/css/framework/**/*.css'
+        'src/css/framework/**/*.css',
+        // bootstrap-datetimepicker
+        '/bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css'
     ],
     img_files: [
         // jQuery UI

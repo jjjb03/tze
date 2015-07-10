@@ -7,8 +7,60 @@
  */
 
 
+/* global moment */
+
 var zeiterfassung = (function ($) {
     var me = {};
+
+    me.autoUpdate = function () {
+        if ($.active > 0) {
+            //falls bereits eine Anfrage an den Server läuft...
+            $(document).one("ajaxStop", function () {
+                me.autoUpdate();
+            });
+        } else {
+            var filterData = $('#filter').data();
+            var dataString = $.param({mode: "admin", action: "get-users-update", last: filterData.last});
+            if (filterData.filter !== undefined) {
+                var addData = $.param(filterData.filter);
+                if (addData.length > 0) {
+                    dataString += "&" + addData;
+                }
+            }
+
+            // me.updateRequest used in me.toggleUpdater()
+            me.updateRequest = $.post("func/zeiterfassung.php", dataString, function (data) {
+                delete me.updateRequest;
+                if (data.Result === "OK") {
+                    $('#filter').data('last', data.last);
+                    $.each(data.Records, function () {
+                        me.updateRow(this);
+                    });
+                    var check = $('#autoreload').prop('checked');
+                    if (check) {
+                        me.autoUpdateTimer = setTimeout(function () {
+                            me.autoUpdate();
+                        }, 2000);
+                    }
+                }
+            }, "json");
+        }
+    };
+
+    me.datepicker = function (element) {
+        me.$datepicker = $(element);
+        var $datepicker = me.$datepicker;
+
+        if (me.$jtable) {
+            /* Kalender einrichten */
+            $datepicker.datepicker({dateFormat: "yy-mm-dd"})
+                    .on("change", function () {
+                        var filter = $('#filter').data("filter") || {};
+                        me.$jtable.jtable('load', filter);
+                    });
+        }
+    };
+
     me.filter = {
         /**
          * Pulls list for filtering by project
@@ -79,9 +131,12 @@ var zeiterfassung = (function ($) {
         ],
         settings: {}
     };
-    me.init = function () {
-        me.$jtable = $('#jtable_ZE');
+
+    me.init = function (parentElement, jTableElement, datepickerElement) {
+        me.$jtable = $(jTableElement);
         var $jtable = this.$jtable;
+
+        me.datepicker(datepickerElement);
 
         $jtable.jtable({
             title: "&nbsp;",
@@ -125,7 +180,7 @@ var zeiterfassung = (function ($) {
                 Details: {width: "5%", sorting: false, display: function (data) {
                         var Details = $('<button>Details</button>');
                         Details.on("click", function () {
-                            $('#jtable_ZE').jtable('openChildTable',
+                            $jtable.jtable('openChildTable',
                                     Details.closest('tr'),
                                     {
                                         sorting: true,
@@ -133,9 +188,9 @@ var zeiterfassung = (function ($) {
                                         title: "Detailansicht - " + data.record.sVorname + " " + data.record.sNachname,
                                         fields: {
                                             id: {key: true, list: false},
-                                            iProjekt: {title: "Projekt", list: false, type: "radiobutton",
+                                            iProjekt: {title: "Projekt", list: false, type: "combobox",
                                                 options: getOptions('func/zeiterfassung.php', 'mode=admin&action=get-users-projekts&iUserId=' + data.record.iUserID)},
-                                            iCat: {title: "Art", list: false, type: "radiobutton",
+                                            iCat: {title: "Art", list: false, type: "combobox",
                                                 options: getOptions('func/zeiterfassung.php', 'mode=admin&action=get-users-classes&iUserId=' + data.record.iUserID)},
                                             Eintrag: {title: "Eintrag", create: false, edit: false, width: "55%", display: function (data) {
                                                     return data.record.Projekt + " " + data.record.ListLabel;
@@ -147,28 +202,31 @@ var zeiterfassung = (function ($) {
                                                     return data.record.Time_Start.substr(-8);
                                                 },
                                                 input: function (data) {
-                                                    var objDate = new Date();
-                                                    var Zeit = objDate.toTimeString().substr(0, 8);
-                                                    var Datum = $('#datepicker').val();
-                                                    var hiddenInput;
-                                                    if (data.record) {
-                                                        hiddenInput = $('<input type="text" name="Time_Start" value="' + data.record.Time_Start + '">').datetimepicker({
-                                                            dateFormat: "yy-mm-dd",
-                                                            timeFormat: "HH:mm:ss",
-                                                            controlType: 'select',
-                                                            oneLine: true,
-                                                            parse: "loose"
-                                                        });
-                                                    } else {
-                                                        hiddenInput = $('<input type="text" name="Time_Start" value="' + Datum + ' ' + Zeit + '">').datetimepicker({
-                                                            dateFormat: "yy-mm-dd",
-                                                            timeFormat: "HH:mm:ss",
-                                                            controlType: 'select',
-                                                            oneLine: true,
-                                                            parse: "loose"
-                                                        });
-                                                    }
-                                                    return hiddenInput;
+//                                                    var objDate = new Date();
+//                                                    var Zeit = objDate.toTimeString().substr(0, 8);
+//                                                    var Datum = me.$datepicker.val();
+//                                                    var hiddenInput;
+
+                                                    var time = (data.record) ? data.record.Time_Start : false;
+//                                                    if (data.record) {
+//                                                        hiddenInput = $('<input type="text" name="Time_Start" value="' + data.record.Time_Start + '">').datetimepicker({
+//                                                            dateFormat: "yy-mm-dd",
+//                                                            timeFormat: "HH:mm:ss",
+//                                                            controlType: 'select',
+//                                                            oneLine: true,
+//                                                            parse: "loose"
+//                                                        });
+//                                                    } else {
+//                                                        hiddenInput = $('<input type="text" name="Time_Start" value="' + Datum + ' ' + Zeit + '">').datetimepicker({
+//                                                            dateFormat: "yy-mm-dd",
+//                                                            timeFormat: "HH:mm:ss",
+//                                                            controlType: 'select',
+//                                                            oneLine: true,
+//                                                            parse: "loose"
+//                                                        });
+//                                                    }
+                                                    return createDateTime(time, "Time_Start", false);
+//                                                    return hiddenInput;
                                                 }
                                             },
                                             Time_End: {title: "bis", width: "15%", display: function (data) {
@@ -179,28 +237,8 @@ var zeiterfassung = (function ($) {
                                                     return strTime;
                                                 },
                                                 input: function (data) {
-                                                    var objDate = new Date();
-                                                    var Zeit = objDate.toTimeString().substr(0, 8);
-                                                    var Datum = $('#datepicker').val();
-                                                    var hiddenInput;
-                                                    if (data.record) {
-                                                        hiddenInput = $('<input type="text" name="Time_End" value="' + data.record.Time_End + '"></div>').datetimepicker({
-                                                            dateFormat: "yy-mm-dd",
-                                                            timeFormat: "HH:mm:ss",
-                                                            controlType: 'select',
-                                                            oneLine: true,
-                                                            parse: "loose"
-                                                        });
-                                                    } else {
-                                                        hiddenInput = $('<input type="text" name="Time_End" value="' + Datum + ' ' + Zeit + '">').datetimepicker({
-                                                            dateFormat: "yy-mm-dd",
-                                                            timeFormat: "HH:mm:ss",
-                                                            controlType: 'select',
-                                                            oneLine: true,
-                                                            parse: "loose"
-                                                        });
-                                                    }
-                                                    return hiddenInput;
+                                                    var time = (data.record) ? data.record.Time_End : false;
+                                                    return createDateTime(time, "Time_End", true);
                                                 }
                                             },
                                             Duration: {title: "Dauer", width: "15%", create: false, edit: false}
@@ -282,7 +320,7 @@ var zeiterfassung = (function ($) {
                         // 
                         text: '<div><span class="glyphicon glyphicon-download-alt"></span> Excel-Report</div>',
                         click: function () {
-                            var currentDate = $('#datepicker').val();
+                            var currentDate = me.$datepicker.val();
                             zeiterfassung.Report(currentDate);
                         }
                     }] //Array of your custom toolbar items.
@@ -301,7 +339,7 @@ var zeiterfassung = (function ($) {
             },
             loadingAnimationDelay: 100,
             sorting: true
-        });
+        }).jtable("load");
 
         // Toggle Button für logged Only
         $('a[href=#loggedOnly]').data("filter", {toggleProp: "loggedOnly"});
@@ -340,6 +378,7 @@ var zeiterfassung = (function ($) {
 
             } else {
                 me.filter.reset();
+                filter = {};
                 $this.siblings().removeClass("active").children().removeClass("active");
             }
 
@@ -366,67 +405,102 @@ var zeiterfassung = (function ($) {
             }, 400);
         });
     };
-    me.toggleUpdater = function () {
-        clearTimeout(me.timeout);
-        me.timeout = setTimeout(function () {
-            var savedCheck = $('#autoreload').data('checked');
-            savedCheck = (savedCheck !== undefined) ? savedCheck : false;
-            if (savedCheck) {
-                console.log("AutoUpdate deaktiviert");
-                clearTimeout(me.autoUpdateTimer);
 
-                if (me.updateRequest !== undefined) {
-                    me.updateRequest.abort();
-                }
+    function createDateTime(time, InputName, button) {
+        var dateVal = me.$datepicker.val();
+        var timeDateVal = time || dateVal + ' ' + moment().format("hh:mm:ss");
+        var timeVal = moment(timeDateVal).format("hh:mm:ss");
+        var hiddenInput = $('<input type="hidden" name="' + InputName + '" value="' + timeDateVal + '">');
 
-                $('#autoreload').data('checked', false);
-                $('#autoreload').prop('checked', false);
-            } else {
-                console.log("AutoUpdate aktiviert");
-                me.autoUpdate();
-                $('#autoreload').data('checked', true);
-                $('#autoreload').prop('checked', true);
-            }
-        }, 100);
-    };
+        var timeGrp = $('<div class="input-group"></div>');
+        var timePicker = $('<input class="form-control" type="text" value="' + timeVal + '">');
+        var timeButton = $('<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>');
 
-    me.autoUpdate = function () {
-        if ($.active > 0) {
-            //falls bereits eine Anfrage an den Server läuft...
-            $(document).one("ajaxStop", function () {
-                me.autoUpdate();
+        var dateGrp = $('<div class="input-group"></div>');
+        var datePicker = $('<input class="form-control" type="text" value="' + moment(dateVal).format("DD.MM.YYYY") + '">');
+        var dateButton = $('<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>');
+
+        timePicker.on("input change", function () {
+            var date = moment(datePicker.val(), "DD.MM.YYYY");
+            var d = moment($(this).val(), "hh:mm:ss");
+            updateTime(d, date, hiddenInput);
+        });
+
+        timeGrp.on("dp.update dp.change change", function (e) {
+            var date = moment(datePicker.val(), "DD.MM.YYYY");
+            updateTime(e.date, date, hiddenInput);
+        });
+
+        datePicker.on("input change", function () {
+            var e = moment($(this).val(), "DD.MM.YYYY");
+            var time = moment(timePicker.val(), "hh:mm:ss");
+            updateDate(e, time, hiddenInput);
+        });
+
+        dateGrp.on("dp.update dp.change change", function (e) {
+            var time = moment(timePicker.val(), "hh:mm:ss");
+            updateDate(e.date, time, hiddenInput);
+        });
+
+        timeGrp.append(timePicker, timeButton);
+        timeGrp.datetimepicker({widgetPositioning: {vertical: "top"}, showClose: false, keepInvalid: true, format: "HH:mm:ss"});
+
+        dateGrp.append(datePicker, dateButton);
+        dateGrp.datetimepicker({widgetPositioning: {vertical: "top"}, showClose: false, keepInvalid: true, format: "DD.MM.YYYY"});
+
+        var offen = "";
+        if (button) {
+            offen = $('<button type="button" class="btn btn-default">Offen</button>');
+
+            offen.on("click", function (e) {
+                //inputGroup.data("DateTimePicker").clear();
+                timeGrp.data("DateTimePicker").hide();
+                dateGrp.data("DateTimePicker").hide();
+                hiddenInput.val("0000-00-00 00:00:00");
+                datePicker.val("");
+                timePicker.val("offen");
             });
-        } else {
-            var filterData = $('#filter').data();
-            var dataString = $.param({mode: "admin", action: "get-users-update", last: filterData.last});
-            if (filterData.filter !== undefined) {
-                var addData = $.param(filterData.filter);
-                if (addData.length > 0) {
-                    dataString += "&" + addData;
-                }
-            }
-
-            // me.updateRequest used in me.toggleUpdater()
-            me.updateRequest = $.post("func/zeiterfassung.php", dataString, function (data) {
-                delete me.updateRequest;
-                if (data.Result === "OK") {
-                    $('#filter').data('last', data.last);
-                    $.each(data.Records, function () {
-                        me.updateRow(this);
-                    });
-                    var check = $('#autoreload').prop('checked');
-                    if (check) {
-                        me.autoUpdateTimer = setTimeout(function () {
-                            me.autoUpdate();
-                        }, 2000);
-                    }
-                }
-            }, "json");
         }
-    };
-    me.updateRow = function (Record) {
-        this.jtable.jtable('updateRecord', {record: Record, clientOnly: true});
-    };
+
+        var $row = $("<div class='row'></div>");
+
+        var $col1 = $('<div class="col-sm-2"></div>');
+        var $col2 = $('<div class="col-sm-5"></div>');
+        var $col3 = $('<div class="col-sm-5"></div>');
+
+        $row.append(hiddenInput, $col1, $col2, $col3);
+
+        $col1.append(offen);
+        $col2.append(dateGrp);
+        $col3.append(timeGrp);
+
+        return $row;
+    }
+
+    function updateTime(newTime, mDate, hiddenInput) {
+        if (!mDate.isValid()) {
+            mDate = moment();
+        }
+
+        mDate.hour(newTime.hour());
+        mDate.minute(newTime.minute());
+        mDate.second(newTime.second());
+
+        hiddenInput.val(mDate.format("YYYY-MM-DD HH:mm:ss"));
+    }
+
+    function updateDate(newDate, Time, hiddenInput) {
+        if (!Time.isValid()) {
+            Time = moment();
+        }
+
+        Time.year(newDate.year());
+        Time.month(newDate.month());
+        Time.date(newDate.date());
+
+        hiddenInput.val(Time.format("YYYY-MM-DD HH:mm:ss"));
+    }
+
     me.Report = function (date) {
         tze.showProcess();
         $.ajax({
@@ -460,6 +534,34 @@ var zeiterfassung = (function ($) {
 
             }
         });
+    };
+
+    me.toggleUpdater = function () {
+        clearTimeout(me.timeout);
+        me.timeout = setTimeout(function () {
+            var savedCheck = $('#autoreload').data('checked');
+            savedCheck = (savedCheck !== undefined) ? savedCheck : false;
+            if (savedCheck) {
+                console.log("AutoUpdate deaktiviert");
+                clearTimeout(me.autoUpdateTimer);
+
+                if (me.updateRequest !== undefined) {
+                    me.updateRequest.abort();
+                }
+
+                $('#autoreload').data('checked', false);
+                $('#autoreload').prop('checked', false);
+            } else {
+                console.log("AutoUpdate aktiviert");
+                me.autoUpdate();
+                $('#autoreload').data('checked', true);
+                $('#autoreload').prop('checked', true);
+            }
+        }, 100);
+    };
+
+    me.updateRow = function (Record) {
+        this.jtable.jtable('updateRecord', {record: Record, clientOnly: true});
     };
 
     return me;

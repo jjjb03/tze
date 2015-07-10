@@ -21,6 +21,8 @@
     "bootstrap": "~3.3.4",
     "bootbox": "~4.4.0",
     "jqueryui-timepicker-addon": "~1.5.4",
-    "js-jquery": "https://github.com/henrya/js-jquery.git"
+    "js-jquery": "https://github.com/henrya/js-jquery.git",
+    "moment": "~2.10.3",
+    "eonasdan-bootstrap-datetimepicker": "~4.14.30"
   }
 }
