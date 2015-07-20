@@ -1,5 +1,5 @@
 /*!
- * Framework für TZE (0.1.0) - Erstellt am 09-07-2015
+ * Framework für TZE (0.1.0) - Erstellt am 10-07-2015
  *
  * Copyright (c) 2015, Johannes Boost <jjjb at usw-tools.de>
  * 
@@ -32204,6 +32204,7 @@ tze = tze || (function ($) {
 $(document).ready(function () {
 
     bootbox.setLocale('de');
+    moment.locale('de');
 
     if (tze.isPoppedOut()) {
         $('#popout').remove();
@@ -32252,7 +32253,7 @@ $(document).ready(function () {
 //            $(this).text(Zeit_String);
             
             var oldTime = $(this).text();
-            var timeFormat = "hh:mm:ss";
+            var timeFormat = "HH:mm:ss";
             var newtime = moment(oldTime, timeFormat).add(iIntervall, "ms").format(timeFormat);
             $(this).text(newtime);
         });

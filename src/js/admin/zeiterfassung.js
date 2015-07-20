@@ -202,31 +202,8 @@ var zeiterfassung = (function ($) {
                                                     return data.record.Time_Start.substr(-8);
                                                 },
                                                 input: function (data) {
-//                                                    var objDate = new Date();
-//                                                    var Zeit = objDate.toTimeString().substr(0, 8);
-//                                                    var Datum = me.$datepicker.val();
-//                                                    var hiddenInput;
-
                                                     var time = (data.record) ? data.record.Time_Start : false;
-//                                                    if (data.record) {
-//                                                        hiddenInput = $('<input type="text" name="Time_Start" value="' + data.record.Time_Start + '">').datetimepicker({
-//                                                            dateFormat: "yy-mm-dd",
-//                                                            timeFormat: "HH:mm:ss",
-//                                                            controlType: 'select',
-//                                                            oneLine: true,
-//                                                            parse: "loose"
-//                                                        });
-//                                                    } else {
-//                                                        hiddenInput = $('<input type="text" name="Time_Start" value="' + Datum + ' ' + Zeit + '">').datetimepicker({
-//                                                            dateFormat: "yy-mm-dd",
-//                                                            timeFormat: "HH:mm:ss",
-//                                                            controlType: 'select',
-//                                                            oneLine: true,
-//                                                            parse: "loose"
-//                                                        });
-//                                                    }
                                                     return createDateTime(time, "Time_Start", false);
-//                                                    return hiddenInput;
                                                 }
                                             },
                                             Time_End: {title: "bis", width: "15%", display: function (data) {
@@ -407,46 +384,112 @@ var zeiterfassung = (function ($) {
     };
 
     function createDateTime(time, InputName, button) {
-        var dateVal = me.$datepicker.val();
-        var timeDateVal = time || dateVal + ' ' + moment().format("hh:mm:ss");
-        var timeVal = moment(timeDateVal).format("hh:mm:ss");
+        var mom = moment(time);
+        var timeDateVal, timeVal, dateVal;
+        
+        var timeFormat = "HH:mm:ss";
+        var dateFormat = "DD.MM.YYYY";
+        
+        var hiddenInputFormat = "YYYY-MM.DD HH:mm:ss";
+
+        if (mom.isValid()) {
+            timeVal = mom.format(timeFormat);
+            dateVal = mom.format(dateFormat);
+            timeDateVal = time;
+        } else if (button) {
+            timeVal = "offen";
+            dateVal = "";
+            timeDateVal = "0000-00-00 00:00:00";
+        } else {
+            var date = me.$datepicker.val();
+            timeVal = moment().format(timeFormat);
+            dateVal = moment(date).format(dateFormat);
+            timeDateVal = date + ' ' + timeVal;
+        }
+
         var hiddenInput = $('<input type="hidden" name="' + InputName + '" value="' + timeDateVal + '">');
 
         var timeGrp = $('<div class="input-group"></div>');
         var timePicker = $('<input class="form-control" type="text" value="' + timeVal + '">');
-        var timeButton = $('<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>');
+        var timeButton = $('<span class="input-group-btn"><span class="btn btn-default"><span class="glyphicon glyphicon-time"></span></span></span>');
 
         var dateGrp = $('<div class="input-group"></div>');
-        var datePicker = $('<input class="form-control" type="text" value="' + moment(dateVal).format("DD.MM.YYYY") + '">');
-        var dateButton = $('<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>');
+        var datePicker = $('<input class="form-control" type="text" value="' + dateVal + '">');
+        var dateButton = $('<span class="input-group-btn"><span class="btn btn-default"><span class="glyphicon glyphicon-calendar"></span></span></span>');
+
+        timeGrp.append(timePicker, timeButton);
+        timeGrp.datetimepicker({widgetPositioning: {vertical: "top"}, showClose: false, keepInvalid: true, format: timeFormat});
+
+        dateGrp.append(datePicker, dateButton);
+        dateGrp.datetimepicker({widgetPositioning: {vertical: "top"}, showClose: false, keepInvalid: true, format: dateFormat});
 
         timePicker.on("input change", function () {
-            var date = moment(datePicker.val(), "DD.MM.YYYY");
-            var d = moment($(this).val(), "hh:mm:ss");
-            updateTime(d, date, hiddenInput);
+            var date = moment(datePicker.val(), dateFormat);
+            var d = moment($(this).val(), timeFormat);
+            updateTime(d, date, hiddenInput, timePicker, datePicker);
+        });
+
+        timeGrp.on("dp.show", function () {
+            var picker = timeGrp.data("DateTimePicker");
+            var timeStart = moment($("#Edit-Time_Start > input[name='Time_Start']").val(), hiddenInputFormat);
+            var timeEnd = moment($("#Edit-Time_End > input[name='Time_End']").val(), hiddenInputFormat);
+            
+            var inputTime = moment($(this).closest(".row").children("input:hidden").val(), hiddenInputFormat);
+            picker.date(inputTime);
+            
+            if (button) {
+                picker.minDate(timeStart);
+
+                if (timeEnd.isBefore(timeStart) || !timeEnd.isValid()) {
+                    picker.date(timeStart);
+                }
+            } else {
+                picker.maxDate(timeEnd);
+
+                if (timeStart.isAfter(timeEnd) || !timeStart.isValid()) {
+                    picker.date(timeEnd);
+                }
+            }
+        });
+
+        dateGrp.on("dp.show", function () {
+            var picker = dateGrp.data("DateTimePicker");
+            var timeStart = moment($("#Edit-Time_Start > input[name='Time_Start']").val(), hiddenInputFormat);
+            var timeEnd = moment($("#Edit-Time_End > input[name='Time_End']").val(), hiddenInputFormat);
+            
+            var inputTime = moment($(this).closest(".row").children("input:hidden").val(), hiddenInputFormat);
+            picker.date(inputTime);
+            
+            if (button) {
+                picker.minDate(timeStart);
+
+                if (timeEnd.isBefore(timeStart) || !timeEnd.isValid()) {
+                    picker.date(timeStart);
+                }
+            } else {
+                picker.maxDate(timeEnd);
+
+                if (timeStart.isAfter(timeEnd) || !timeStart.isValid()) {
+                    picker.date(timeEnd);
+                }
+            }
         });
 
         timeGrp.on("dp.update dp.change change", function (e) {
-            var date = moment(datePicker.val(), "DD.MM.YYYY");
-            updateTime(e.date, date, hiddenInput);
+            var date = moment(datePicker.val(), dateFormat);
+            updateTime(e.date, date, hiddenInput, timePicker, datePicker);
         });
 
         datePicker.on("input change", function () {
-            var e = moment($(this).val(), "DD.MM.YYYY");
-            var time = moment(timePicker.val(), "hh:mm:ss");
-            updateDate(e, time, hiddenInput);
+            var e = moment($(this).val(), dateFormat);
+            var time = moment(timePicker.val(), timeFormat);
+            updateDate(e, time, hiddenInput, timePicker, datePicker);
         });
 
         dateGrp.on("dp.update dp.change change", function (e) {
-            var time = moment(timePicker.val(), "hh:mm:ss");
-            updateDate(e.date, time, hiddenInput);
+            var time = moment(timePicker.val(), timeFormat);
+            updateDate(e.date, time, hiddenInput, timePicker, datePicker);
         });
-
-        timeGrp.append(timePicker, timeButton);
-        timeGrp.datetimepicker({widgetPositioning: {vertical: "top"}, showClose: false, keepInvalid: true, format: "HH:mm:ss"});
-
-        dateGrp.append(datePicker, dateButton);
-        dateGrp.datetimepicker({widgetPositioning: {vertical: "top"}, showClose: false, keepInvalid: true, format: "DD.MM.YYYY"});
 
         var offen = "";
         if (button) {
@@ -477,9 +520,9 @@ var zeiterfassung = (function ($) {
         return $row;
     }
 
-    function updateTime(newTime, mDate, hiddenInput) {
+    function updateTime(newTime, mDate, hiddenInput, timePicker, datePicker) {
         if (!mDate.isValid()) {
-            mDate = moment();
+            mDate = moment(me.$datepicker.val());
         }
 
         mDate.hour(newTime.hour());
@@ -487,11 +530,13 @@ var zeiterfassung = (function ($) {
         mDate.second(newTime.second());
 
         hiddenInput.val(mDate.format("YYYY-MM-DD HH:mm:ss"));
+        timePicker.val(mDate.format("HH:mm:ss"));
+        datePicker.val(mDate.format("DD.MM.YYYY"));
     }
 
-    function updateDate(newDate, Time, hiddenInput) {
+    function updateDate(newDate, Time, hiddenInput, timePicker, datePicker) {
         if (!Time.isValid()) {
-            Time = moment();
+            Time = moment(me.$datepicker.val());
         }
 
         Time.year(newDate.year());
@@ -499,6 +544,8 @@ var zeiterfassung = (function ($) {
         Time.date(newDate.date());
 
         hiddenInput.val(Time.format("YYYY-MM-DD HH:mm:ss"));
+        timePicker.val(Time.format("HH:mm:ss"));
+        datePicker.val(Time.format("DD.MM.YYYY"));
     }
 
     me.Report = function (date) {

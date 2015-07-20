@@ -152,6 +152,7 @@ tze = tze || (function ($) {
 $(document).ready(function () {
 
     bootbox.setLocale('de');
+    moment.locale('de');
 
     if (tze.isPoppedOut()) {
         $('#popout').remove();
@@ -200,7 +201,7 @@ $(document).ready(function () {
 //            $(this).text(Zeit_String);
             
             var oldTime = $(this).text();
-            var timeFormat = "hh:mm:ss";
+            var timeFormat = "HH:mm:ss";
             var newtime = moment(oldTime, timeFormat).add(iIntervall, "ms").format(timeFormat);
             $(this).text(newtime);
         });
